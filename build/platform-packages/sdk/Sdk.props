@@ -1,5 +1,7 @@
 <Project>
   <PropertyGroup>
+    <!-- dotnet restore -r sets the plural property even for a single RID. -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != '' And !$(RuntimeIdentifiers.Contains(';'))">$(RuntimeIdentifiers)</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
     <SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
     <AvaloniaDistributionVersion>@VERSION@</AvaloniaDistributionVersion>

@@ -1,5 +1,6 @@
 """Restore, build, publish and execute the actual packages using an empty cache."""
 import argparse
+import itertools
 import json
 import os
 from pathlib import Path
@@ -55,11 +56,15 @@ def verify(feed, version, platform, host_rid):
             if rid is None:
                 raise AssertionError(f"Unexpected package: {name}")
             check_archive(archive, rid)
-    for rid in RIDS[platform]:
-        with tempfile.TemporaryDirectory(prefix="avalonia-package-test-") as temp:
+    for rid, framework in itertools.product(RIDS[platform], ("net8.0", "net10.0")):
+        # Windows build services can retain handles after MSBuild exits. Cleanup
+        # failure must not mask the actual restore/build/runtime test result.
+        with tempfile.TemporaryDirectory(prefix="avalonia-package-test-", ignore_cleanup_errors=True) as temp:
             project = Path(temp)
             cache = project / "cache"
             shutil.copytree(ROOT / "build/platform-packages/smoke", project, dirs_exist_ok=True)
+            project_file = project / "Smoke.csproj"
+            project_file.write_text(project_file.read_text().replace("net8.0", framework))
             # The smoke project is outside the source tree so it cannot accidentally
             # use repository project references, package versions or build imports.
             (project / "global.json").write_text(json.dumps({
@@ -76,10 +81,14 @@ def verify(feed, version, platform, host_rid):
             public = ET.SubElement(mapping, "packageSource", key="nuget")
             ET.SubElement(public, "package", pattern="*")
             (project / "NuGet.Config").write_bytes(ET.tostring(configuration))
-            env = os.environ | {"NUGET_PACKAGES": str(cache), "DOTNET_CLI_TELEMETRY_OPTOUT": "1"}
+            env = os.environ | {"NUGET_PACKAGES": str(cache), "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+                                "MSBUILDDISABLENODEREUSE": "1"}
             # Host case intentionally omits -r: verify SDK auto-selection on a
             # completely fresh restore. Every other case verifies explicit -r.
             runtime = [] if rid == host_rid else ["-r", rid]
+            if rid != host_rid:
+                run(["dotnet", "restore", "-r", rid], project, env)
+                check_restore(project, cache, rid)
             run(["dotnet", "build", "-c", "Release", *runtime], project, env)
             check_restore(project, cache, rid)
             run(["dotnet", "publish", "-c", "Release", *runtime, "--no-restore", "-o", "publish"], project, env)
@@ -92,7 +101,7 @@ def verify(feed, version, platform, host_rid):
                 run(["dotnet", "publish/Smoke.dll"], project, env)
                 run(["dotnet", "publish/Smoke.dll", "--desktop"], project, env)
                 run(["dotnet", "restore", "-r", "browser-wasm"], project, env, succeeds=False)
-                run(["dotnet", "restore", "-p:RuntimeIdentifiers=win-x64"], project, env, succeeds=False)
+                run(["dotnet", "restore", "-p:RuntimeIdentifiers=win-x64%3Blinux-x64"], project, env, succeeds=False)
 
 
 if __name__ == "__main__":
