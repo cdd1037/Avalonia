@@ -17,7 +17,7 @@ Actions 只生成 artifacts，不发布 NuGet。未来发布时仍使用独立�
 ```json
 {
   "msbuild-sdks": {
-    "Cdd.Avalonia.Sdk": "12.2.999-platform.RUN.ATTEMPT"
+    "Cdd.Avalonia.Sdk": "12.2.999-platform.RUN"
   }
 }
 ```
