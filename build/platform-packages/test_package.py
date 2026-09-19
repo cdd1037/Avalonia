@@ -17,6 +17,15 @@ class DistributionTests(unittest.TestCase):
         self.assertIn(b"1.0.0-test.1", files["Sdk/Sdk.props"])
         self.assertNotIn(b"@VERSION@", files["Sdk/Sdk.props"])
 
+    def test_sdk_embeds_readme_with_its_own_version(self):
+        with tempfile.TemporaryDirectory() as temp:
+            make_sdk(Path(temp), "1.0.0-test.2")
+            spec, files = read_package(next(Path(temp).glob("*.nupkg")))
+        self.assertEqual(spec.findtext("metadata/readme"), "README.md")
+        readme = files["README.md"].decode("utf-8")
+        self.assertIn('"Cdd.Avalonia.Sdk": "1.0.0-test.2"', readme)
+        self.assertNotIn("@VERSION@", readme)
+
     def test_platform_and_symbols_are_removed_from_download(self):
         files = {"runtimes/win-x64/native/libSkiaSharp.dll": b"native",
                  "runtimes/win-x64/native/libSkiaSharp.pdb": b"symbols",
