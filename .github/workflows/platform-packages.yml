@@ -88,3 +88,28 @@ jobs:
         with:
           name: diagnostics-${{ matrix.platform }}
           path: .nuke/temp/*.log
+
+  cross-target:
+    name: Restore and publish foreign operating systems
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PACKAGE_VERSION: 12.2.999-platform.${{ github.run_number }}.${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: platform-nuget-*
+          path: artifacts/feeds
+      - name: Verify Windows and macOS targets from a Linux development host
+        run: |
+          python build/platform-packages/verify.py --feed artifacts/feeds/platform-nuget-win --platform win --host-rid linux-x64 --version "$PACKAGE_VERSION"
+          python build/platform-packages/verify.py --feed artifacts/feeds/platform-nuget-osx --platform osx --host-rid linux-x64 --version "$PACKAGE_VERSION"

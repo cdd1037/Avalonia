@@ -10,7 +10,7 @@
   <Target Name="ValidateAvaloniaDistribution" BeforeTargets="CollectPackageReferences;PrepareForBuild">
     <Error Condition="'$(_AvaloniaSupportedRid)' != 'True'"
            Text="Unsupported Avalonia RuntimeIdentifier '$(RuntimeIdentifier)'. Supported: win-x64, win-x86, win-arm64, linux-x64, linux-arm64, osx-x64, osx-arm64." />
-    <Error Condition="'$(RuntimeIdentifiers)' != ''"
+    <Error Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifiers)' != '$(RuntimeIdentifier)'"
            Text="This distribution restores one platform at a time. Use RuntimeIdentifier (singular), or separate dotnet publish -r invocations." />
     <Error Condition="'$(ManagePackageVersionsCentrally)' == 'true'"
            Text="The Avalonia SDK pins its complete distribution. Set ManagePackageVersionsCentrally=false in this application project." />

@@ -65,6 +65,8 @@ Actions 分别在 Windows、Linux 和 macOS 上运行：
    开发机 RID 不传 `-r`，验证自动选择；其他 RID 显式指定。
 4. 在三个构建宿主上执行原生 Skia 绘图、HarfBuzz 字形整形、编译 XAML 和桌面后端初始化。
    其他架构仅验证还原/编译/发布，不宣称做过原生执行。
+5. 在 Linux 开发机上使用显式 RID 还原和发布 Windows/macOS 应用，验证目标平台优先于开发机。
+   消费测试同时覆盖 net8.0 与 net10.0。
 
 下载到构建机的上游包仍包含全部原生平台；缩减的是应用消费者的下载和输出。
 每个平台 artifact 附带 `provenance-*.json`，记录上游版本、来源、SHA-256 和输出包体积。

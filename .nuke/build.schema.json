@@ -24,6 +24,7 @@
     "ExecutableTarget": {
       "type": "string",
       "enum": [
+        "BuildPlatformPackages",
         "BuildToNuGetCache",
         "CiAzureLinux",
         "CiAzureOSX",
@@ -131,6 +132,10 @@
         },
         "force-nuget-version": {
           "type": "string"
+        },
+        "PackagePlatform": {
+          "type": "string",
+          "description": "Desktop platform to package: win, linux or osx"
         },
         "skip-tests": {
           "type": "boolean"

@@ -37,7 +37,7 @@ internal static class Program
             drawing.DrawText(text, new Point(10, 10));
         }
         using var stream = new MemoryStream();
-        bitmap.Save(stream);
+        bitmap.Save(stream, PngBitmapEncoderOptions.Default);
         using var decoded = SKBitmap.Decode(stream.ToArray());
         if (decoded.Width != 240 || !decoded.Pixels.Any(p => p.Red < 128))
             throw new InvalidOperationException("Native rendering did not produce text pixels.");
