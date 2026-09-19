@@ -1,5 +1,7 @@
 # 按目标平台分发 Avalonia
 
+维护者跟进官方版本的操作见 [升级指南](UPGRADING.md)。CI 版本从源码的 `build/SharedVersion.props` 自动生成，不再硬编码基础版本。
+
 此构建从本仓库源码生成桌面版 Avalonia，并把 NuGet **下载边界**设为单个 RID。
 普通包不含 PDB；应用自己的 PDB 不受影响。当前覆盖 Windows x64/x86/arm64、
 Linux glibc x64/arm64、macOS x64/arm64，提供 net8.0 与 net10.0 程序集。

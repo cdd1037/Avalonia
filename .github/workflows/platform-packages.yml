@@ -47,7 +47,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     env:
-      PACKAGE_VERSION: 12.2.999-platform.${{ github.run_number }}
       PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
@@ -63,11 +62,13 @@ jobs:
       - name: Install Linux desktop libraries
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1 libice6 libsm6 libxrandr2 libxi6 libxcursor1 libgl1-mesa-dri
+      - name: Derive distribution version from source
+        run: python build/platform-packages/version.py --run-number ${{ github.run_number }} --github-env
       - name: Build desktop packages from source
         shell: pwsh
         run: dotnet run --project nukebuild/_build.csproj -- BuildPlatformPackages --package-platform ${{ matrix.platform }} --force-nuget-version $env:PACKAGE_VERSION
       - name: Test package graph transformations
-        run: python -m unittest discover -s build/platform-packages -p test_package.py -v
+        run: python -m unittest discover -s build/platform-packages -p "test_*.py" -v
       - name: Split native assets and create distribution
         shell: pwsh
         run: python build/platform-packages/package.py --platform ${{ matrix.platform }} --version $env:PACKAGE_VERSION
@@ -95,8 +96,6 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    env:
-      PACKAGE_VERSION: 12.2.999-platform.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -110,6 +109,8 @@ jobs:
         with:
           pattern: platform-nuget-*
           path: artifacts/feeds
+      - name: Derive distribution version from source
+        run: python build/platform-packages/version.py --run-number ${{ github.run_number }} --github-env
       - name: Verify Windows and macOS targets from a Linux development host
         run: |
           python build/platform-packages/verify.py --feed artifacts/feeds/platform-nuget-win --platform win --host-rid linux-x64 --version "$PACKAGE_VERSION"

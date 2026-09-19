@@ -57,10 +57,10 @@ jobs:
               if (matches.length !== 1) throw new Error(`Missing or ambiguous ${platform} artifact`);
             }
             core.setOutput('sha', run.head_sha);
-            core.setOutput('version', `12.2.999-platform.${run.run_number}`);
+            core.setOutput('run_number', String(run.run_number));
             await core.summary.addHeading('NuGet release')
               .addLink('Verified build', run.html_url)
-              .addRaw(`\n\nSource: ${run.head_sha}\n\nVersion: 12.2.999-platform.${run.run_number}\n`)
+              .addRaw(`\n\nSource: ${run.head_sha}\n`)
               .write();
       - uses: actions/checkout@v4
         with:
@@ -72,6 +72,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Derive version from the verified build revision
+        env:
+          BUILD_SHA: ${{ steps.build.outputs.sha }}
+          BUILD_RUN_NUMBER: ${{ steps.build.outputs.run_number }}
+        run: |
+          python build/platform-packages/version.py --ref "$BUILD_SHA" --run-number "$BUILD_RUN_NUMBER" --github-env
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -82,8 +88,6 @@ jobs:
           pattern: platform-nuget-*
           path: artifacts/release-input
       - name: Validate package identities, versions and dependency closure
-        env:
-          PACKAGE_VERSION: ${{ steps.build.outputs.version }}
         run: python scripts/platform-release/prepare_release.py --source artifacts/release-input --output artifacts/release --version "$PACKAGE_VERSION"
       - name: Record exact package hashes
         uses: actions/upload-artifact@v4
