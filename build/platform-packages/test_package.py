@@ -25,6 +25,8 @@ class DistributionTests(unittest.TestCase):
         readme = files["README.md"].decode("utf-8")
         self.assertIn('"Cdd.Avalonia.Sdk": "1.0.0-test.2"', readme)
         self.assertNotIn("@VERSION@", readme)
+        self.assertNotIn(b"\r\n", files["README.md"])
+        self.assertNotIn(b"\r\n", files["Sdk/Sdk.props"])
 
     def test_platform_and_symbols_are_removed_from_download(self):
         files = {"runtimes/win-x64/native/libSkiaSharp.dll": b"native",

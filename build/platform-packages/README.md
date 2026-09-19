@@ -19,7 +19,7 @@ Linux glibc x64/arm64、macOS x64/arm64，提供 net8.0 与 net10.0 程序集。
 ```json
 {
   "msbuild-sdks": {
-    "Cdd.Avalonia.Sdk": "12.2.999-platform.RUN"
+    "Cdd.Avalonia.Sdk": "12.1.2-platform.RUN"
   }
 }
 ```
@@ -78,9 +78,9 @@ Actions 分别在 Windows、Linux 和 macOS 上运行：
 
 ```sh
 git submodule update --init --recursive
-dotnet run --project nukebuild/_build.csproj -- BuildPlatformPackages --package-platform win --force-nuget-version 12.2.999-platform.local
-python build/platform-packages/package.py --platform win --version 12.2.999-platform.local
-python build/platform-packages/verify.py --feed artifacts/platform-nuget --platform win --host-rid win-x64 --version 12.2.999-platform.local
+dotnet run --project nukebuild/_build.csproj -- BuildPlatformPackages --package-platform win --force-nuget-version 12.1.2-platform.local
+python build/platform-packages/package.py --platform win --version 12.1.2-platform.local
+python build/platform-packages/verify.py --feed artifacts/platform-nuget --platform win --host-rid win-x64 --version 12.1.2-platform.local
 ```
 
 Linux 的验证命令需在可用 X11 会话中运行，CI 使用 `xvfb-run -a`。

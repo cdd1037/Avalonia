@@ -151,10 +151,10 @@ def make_sdk(output, version):
     ET.SubElement(metadata, "license", type="expression").text = "MIT"
     ET.SubElement(metadata, "licenseUrl").text = "https://licenses.nuget.org/MIT"
     ET.SubElement(metadata, "readme").text = "README.md"
-    files = {"Sdk/" + path.name: path.read_bytes().replace(b"@VERSION@", version.encode())
+    files = {"Sdk/" + path.name: path.read_bytes().replace(b"\r\n", b"\n").replace(b"@VERSION@", version.encode())
              for path in (ROOT / "build/platform-packages/sdk").glob("*")}
     files["README.md"] = (ROOT / "build/platform-packages/README.nuget.md").read_bytes().replace(
-        b"@VERSION@", version.encode())
+        b"\r\n", b"\n").replace(b"@VERSION@", version.encode())
     write_package(output, spec, files)
 
 
