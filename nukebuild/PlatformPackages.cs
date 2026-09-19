@@ -11,6 +11,9 @@ partial class Build
 
     Target BuildPlatformPackages => _ => _
         .Requires(() => PackagePlatform)
+        // Avalonia 12.1 builds the macOS dylib through Nuke, before managed pack.
+        // CompileNative also generates the matching IDL headers and skips non-macOS hosts.
+        .DependsOn(CompileNative)
         .Executes(() =>
         {
             if (PackagePlatform is not ("win" or "linux" or "osx"))
