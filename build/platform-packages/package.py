@@ -149,6 +149,7 @@ def make_sdk(output, version):
                        "description": "Selects a RID-specific Avalonia desktop distribution before restore."}.items():
         ET.SubElement(metadata, key).text = value
     ET.SubElement(metadata, "license", type="expression").text = "MIT"
+    ET.SubElement(metadata, "licenseUrl").text = "https://licenses.nuget.org/MIT"
     files = {"Sdk/" + path.name: path.read_bytes().replace(b"@VERSION@", version.encode())
              for path in (ROOT / "build/platform-packages/sdk").glob("*")}
     write_package(output, spec, files)

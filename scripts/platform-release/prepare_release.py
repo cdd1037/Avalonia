@@ -21,6 +21,11 @@ def inspect(path):
         version = spec.findtext("metadata/version")
         if not name.startswith("Cdd."):
             raise ValueError(f"Refusing to publish upstream package {name}")
+        license_node = spec.find("metadata/license")
+        if license_node is not None and license_node.get("type") == "expression":
+            expected_url = "https://licenses.nuget.org/" + license_node.text
+            if spec.findtext("metadata/licenseUrl") != expected_url:
+                raise ValueError(f"NuGet.org requires licenseUrl={expected_url} for {name}")
         if any(n.lower().endswith(".pdb") for n in names):
             raise ValueError(f"Unexpected PDB in {name}")
         # The SDK is emitted by each OS build. Windows checkout line endings

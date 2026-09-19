@@ -4,10 +4,19 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
-from package import filter_files, rename, read_package, write_package
+from package import filter_files, make_sdk, rename, read_package, write_package
 
 
 class DistributionTests(unittest.TestCase):
+    def test_sdk_satisfies_nuget_org_license_metadata_requirements(self):
+        with tempfile.TemporaryDirectory() as temp:
+            make_sdk(Path(temp), "1.0.0-test.1")
+            spec, files = read_package(next(Path(temp).glob("*.nupkg")))
+        self.assertEqual(spec.findtext("metadata/license"), "MIT")
+        self.assertEqual(spec.findtext("metadata/licenseUrl"), "https://licenses.nuget.org/MIT")
+        self.assertIn(b"1.0.0-test.1", files["Sdk/Sdk.props"])
+        self.assertNotIn(b"@VERSION@", files["Sdk/Sdk.props"])
+
     def test_platform_and_symbols_are_removed_from_download(self):
         files = {"runtimes/win-x64/native/libSkiaSharp.dll": b"native",
                  "runtimes/win-x64/native/libSkiaSharp.pdb": b"symbols",
