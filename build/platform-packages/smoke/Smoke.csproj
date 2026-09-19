@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk;Cdd.Avalonia.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaPackage Include="Avalonia.Headless;Avalonia.Themes.Fluent;Avalonia.Fonts.Inter" />
+  </ItemGroup>
+</Project>

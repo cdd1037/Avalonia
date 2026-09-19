@@ -1,0 +1,90 @@
+name: Platform NuGet packages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'feat/platform-nuget-packages']
+    paths:
+      - 'build/**'
+      - 'nukebuild/**'
+      - 'src/**'
+      - 'packages/**'
+      - 'Directory.*'
+      - 'global.json'
+      - '.github/workflows/platform-packages.yml'
+  pull_request:
+    paths:
+      - 'build/**'
+      - 'nukebuild/**'
+      - 'src/**'
+      - 'packages/**'
+      - 'Directory.*'
+      - 'global.json'
+      - '.github/workflows/platform-packages.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-packages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            host_rid: win-x64
+          - os: ubuntu-24.04
+            platform: linux
+            host_rid: linux-x64
+          - os: macos-15
+            platform: osx
+            host_rid: osx-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      PACKAGE_VERSION: 12.2.999-platform.${{ github.run_number }}.${{ github.run_attempt }}
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Linux desktop libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb libfontconfig1 libice6 libsm6 libxrandr2 libxi6 libxcursor1 libgl1-mesa-dri
+      - name: Build desktop packages from source
+        shell: pwsh
+        run: dotnet run --project nukebuild/_build.csproj -- BuildPlatformPackages --package-platform ${{ matrix.platform }} --force-nuget-version $env:PACKAGE_VERSION
+      - name: Test package graph transformations
+        run: python -m unittest discover -s build/platform-packages -p test_package.py -v
+      - name: Split native assets and create distribution
+        shell: pwsh
+        run: python build/platform-packages/package.py --platform ${{ matrix.platform }} --version $env:PACKAGE_VERSION
+      - name: Verify fresh restore, build, publish and native execution
+        shell: pwsh
+        run: |
+          $arguments = @('build/platform-packages/verify.py', '--feed', 'artifacts/platform-nuget', '--version', $env:PACKAGE_VERSION, '--platform', '${{ matrix.platform }}', '--host-rid', '${{ matrix.host_rid }}')
+          if ($IsLinux) { xvfb-run -a python @arguments } else { python @arguments }
+          exit $LASTEXITCODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-nuget-${{ matrix.platform }}
+          path: artifacts/platform-nuget/*
+          if-no-files-found: error
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-${{ matrix.platform }}
+          path: .nuke/temp/*.log

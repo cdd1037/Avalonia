@@ -10,6 +10,24 @@ namespace Avalonia
             // Always load HarfBuzz on desktop platforms
             LoadHarfBuzz(builder);
 
+#if AVALONIA_PLATFORM_PACKAGE
+#if AVALONIA_WINDOWS
+            if (!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("This Avalonia package targets Windows.");
+            builder.UseWin32();
+#elif AVALONIA_MACOS
+            if (!OperatingSystem.IsMacOS())
+                throw new PlatformNotSupportedException("This Avalonia package targets macOS.");
+            builder.UseAvaloniaNative();
+#elif AVALONIA_LINUX
+            if (!OperatingSystem.IsLinux())
+                throw new PlatformNotSupportedException("This Avalonia package targets Linux.");
+            builder.UseX11();
+#else
+#error Unsupported AvaloniaPackagePlatform
+#endif
+            LoadSkia(builder);
+#else
             // We don't have the ability to load every assembly right now, so we are
             // stuck with manual configuration here
             // Helpers are extracted to separate methods to take the advantage of the fact
@@ -38,9 +56,11 @@ namespace Avalonia
                     "Avalonia.Desktop package was referenced on non-desktop platform or it isn't supported");
             }
 
+#endif
             return builder;
         }
 
+#if !AVALONIA_PLATFORM_PACKAGE
         static void LoadAvaloniaNative(AppBuilder builder)
              => builder.UseAvaloniaNative();
         static void LoadWin32(AppBuilder builder)
@@ -48,6 +68,7 @@ namespace Avalonia
 
         static void LoadX11(AppBuilder builder)
              => builder.UseX11();
+#endif
 
         static void LoadSkia(AppBuilder builder)
              => builder.UseSkia();

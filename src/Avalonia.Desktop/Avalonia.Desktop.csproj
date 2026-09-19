@@ -3,12 +3,19 @@
     <TargetFrameworks>$(AvsCurrentTargetFramework);$(AvsLegacyTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(AvaloniaPackagePlatform)' != ''">
+    <DefineConstants>$(DefineConstants);AVALONIA_PLATFORM_PACKAGE</DefineConstants>
+    <DefineConstants Condition="'$(AvaloniaPackagePlatform)' == 'win'">$(DefineConstants);AVALONIA_WINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(AvaloniaPackagePlatform)' == 'linux'">$(DefineConstants);AVALONIA_LINUX</DefineConstants>
+    <DefineConstants Condition="'$(AvaloniaPackagePlatform)' == 'osx'">$(DefineConstants);AVALONIA_MACOS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="../../src/Windows/Avalonia.Win32/Avalonia.Win32.csproj" />      
+    <ProjectReference Include="../../src/Windows/Avalonia.Win32/Avalonia.Win32.csproj" Condition="'$(AvaloniaPackagePlatform)' == '' Or '$(AvaloniaPackagePlatform)' == 'win'" />
     <ProjectReference Include="../../src/Skia/Avalonia.Skia/Avalonia.Skia.csproj" />
-    <ProjectReference Include="../../src/Avalonia.Native/Avalonia.Native.csproj" />
+    <ProjectReference Include="../../src/Avalonia.Native/Avalonia.Native.csproj" Condition="'$(AvaloniaPackagePlatform)' == '' Or '$(AvaloniaPackagePlatform)' == 'osx'" />
     <ProjectReference Include="../../packages/Avalonia/Avalonia.csproj" />
-    <ProjectReference Include="../Avalonia.X11/Avalonia.X11.csproj" />
+    <ProjectReference Include="../Avalonia.X11/Avalonia.X11.csproj" Condition="'$(AvaloniaPackagePlatform)' == '' Or '$(AvaloniaPackagePlatform)' == 'linux'" />
     <ProjectReference Include="..\HarfBuzz\Avalonia.HarfBuzz\Avalonia.HarfBuzz.csproj" />
   </ItemGroup>
 
