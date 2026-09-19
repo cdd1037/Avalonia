@@ -84,7 +84,7 @@ jobs:
       - name: Validate package identities, versions and dependency closure
         env:
           PACKAGE_VERSION: ${{ steps.build.outputs.version }}
-        run: python scripts/nuget/prepare_release.py --source artifacts/release-input --output artifacts/release --version "$PACKAGE_VERSION"
+        run: python scripts/platform-release/prepare_release.py --source artifacts/release-input --output artifacts/release --version "$PACKAGE_VERSION"
       - name: Record exact package hashes
         uses: actions/upload-artifact@v4
         with:
