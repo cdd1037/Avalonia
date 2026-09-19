@@ -9,8 +9,8 @@ Linux glibc x64/arm64、macOS x64/arm64，提供 net8.0 与 net10.0 程序集。
 
 从成功的 `Platform NuGet packages` Actions 下载并解压平台 artifacts，
 在 `NuGet.Config` 中加入该目录作为本地源。首次使用前配置好源：SDK 本身也需要还原。
-Actions 只生成 artifacts，不发布 NuGet。未来发布时仍使用独立的 `Cdd.*` 包名；
-这些名称尚未在公共源注册或验证所有权。
+构建工作流只生成 artifacts。单独的 `Publish platform packages to NuGet` 工作流
+通过 NuGet Trusted Publishing 发布独立的 `Cdd.*` 包，无需长期 API Key。
 
 在应用旁的 `global.json` 中指定 artifact 对应的 SDK 版本：
 
@@ -83,3 +83,16 @@ python build/platform-packages/verify.py --feed artifacts/platform-nuget --platf
 
 Linux 的验证命令需在可用 X11 会话中运行，CI 使用 `xvfb-run -a`。
 同一 checkout 切换构建 OS 时需要清理旧构建产物；CI 各平台使用全新 checkout。
+
+## 发布
+
+在 main 分支手动运行 `.github/workflows/publish-nuget.yml`，输入已经成功的
+`Platform NuGet packages` 构建的 `build_run_id`（Actions 运行 URL 末尾的数字）。
+发布流程要求三个平台以及跨 OS 验证全部通过，且构建提交已合入 main。
+它下载该次构建的全部平台 artifacts，检查包列表、版本和依赖闭包，将原始包文件
+按依赖顺序上传，SDK 最后上传；不会重新构建或修改包内容。
+`nuget-release-manifest` artifact 保存实际上传包的来源和 SHA-256。
+
+NuGet 策略对应用户名 `chengdd`、仓库 `cdd1037/Avalonia`、工作流
+`publish-nuget.yml`，Environment 留空，范围 `Cdd.*`，允许发布新包和新版本。
+已存在的相同包版本不会被覆盖；发生部分上传后，可用相同构建 ID 重试完成发布。
