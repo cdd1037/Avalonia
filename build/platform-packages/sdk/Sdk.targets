@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <_AvaloniaSupportedRid>$([System.Text.RegularExpressions.Regex]::IsMatch('$(RuntimeIdentifier)', '^(win-(x64|x86|arm64)|linux-(x64|arm64)|osx-(x64|arm64))$'))</_AvaloniaSupportedRid>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaPackage Include="Avalonia.Desktop" />
+    <PackageReference Include="@(AvaloniaPackage->'Cdd.%(Identity).$(RuntimeIdentifier)')"
+                      Version="[$(AvaloniaDistributionVersion)]" />
+  </ItemGroup>
+  <Target Name="ValidateAvaloniaDistribution" BeforeTargets="CollectPackageReferences;PrepareForBuild">
+    <Error Condition="'$(_AvaloniaSupportedRid)' != 'True'"
+           Text="Unsupported Avalonia RuntimeIdentifier '$(RuntimeIdentifier)'. Supported: win-x64, win-x86, win-arm64, linux-x64, linux-arm64, osx-x64, osx-arm64." />
+    <Error Condition="'$(RuntimeIdentifiers)' != ''"
+           Text="This distribution restores one platform at a time. Use RuntimeIdentifier (singular), or separate dotnet publish -r invocations." />
+    <Error Condition="'$(ManagePackageVersionsCentrally)' == 'true'"
+           Text="The Avalonia SDK pins its complete distribution. Set ManagePackageVersionsCentrally=false in this application project." />
+    <Error Condition="'$(AvaloniaSingleProject)' == 'true'"
+           Text="This SDK targets desktop applications only; AvaloniaSingleProject is not supported." />
+  </Target>
+</Project>
